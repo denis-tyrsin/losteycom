@@ -7,9 +7,14 @@ if ($_COOKIE['lang']) {
 } else {
     setcookie('lang', '1', (time()+2592000), '/', '', 0);
 }
-
+//$langNM="RU";
+$langNM="EN";
+//$valNM="RUR";
+$valNM="USD";
+//$valNM="UAH";
+if ($lang==2) { $langNM="RU"; $valNM="RUR"; }
 $itag=0;
-$query = "SELECT * from Names_ln where id_ln='".$lang."' and id_s>48 and id_s<64";
+$query = "SELECT * from Names_ln where id_ln='".$lang."' and id_s>48 and id_s<70";
 $result = mysql_query($query) or die('Query failed: ' . mysql_error());
 while ($row = mysql_fetch_object($result)) {
     $name_ln[$row->id_s]=$row->name;
@@ -200,6 +205,34 @@ $query = "SELECT distinct obj.*, u.*, 1000 * 6372.797 * 2 * atan2(sqrt(power(sin
             $content_list=$content_list."<div class=\"fl-r\">".$proc."%</div>";
             $content_list=$content_list."</div>";
             $content_list=$content_list."<div class=\"progress-bar clear\"><div style=\"width: ".$proc."%;\"></div></div>";
+	$Description=$name_ln[69].": ".$URL."/?n=".$row->id_obj;
+        $ORDER=$row->id_obj."ORDER".$today;
+        $URL2=$URL."/?a=donate|".$ORDER."|".$row->user_id."|".$row->id_obj;
+	//	<kind>phone</kind>
+	$xml="<request>      
+		<version>1.2</version>
+		<result_url>$URL2</result_url>
+		<server_url>$URL2</server_url>
+		<dcur>$valNM</dcur>
+		<merchant_id>$merchant_id</merchant_id>
+		<order_id>$ORDER</order_id>
+		<amount>10</amount>
+		<currency>$valNM</currency>
+		<language>$langNM</language>
+		<description>$Description</description>
+		<default_phone>$phone</default_phone>
+		<pay_way>$method</pay_way> 
+		</request>
+		";	
+	$xml_encoded = base64_encode($xml); 
+	$lqsignature = base64_encode(sha1($signature.$xml.$signature,1));
+
+            $content_list=$content_list."<form action='$url' method='POST'><input type='hidden' name='operation_xml' value='$xml_encoded' /><input type='hidden' name='signature' value='$lqsignature' /><input class='status' type='submit' value='$name_ln[69]'/></form>";
+
+            //$content_list=$content_list."<form style=\"display:inline\" method=POST action=\"https://www.liqpay.com/?do=clickNbuy\">";
+            //$content_list=$content_list."<input type=hidden name=\"preorder\" value=\"39439d521b4cfc797347d580d075b0555f899e67\">";
+            //$content_list=$content_list."<input type=submit value=\"Contribute\"></form>";
+
 	}
             $content_list=$content_list."<div class=\"time\"><a href=\"?date=".$date1."\"><U>".$daysago."</U></a></div>";
             $content_list=$content_list."</div>";

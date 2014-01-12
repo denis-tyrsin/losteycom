@@ -128,9 +128,21 @@ table {
 <?
 echo "var email='".$email."';";
 echo "var subject='".$name_ln[38]."';";
-echo "var msg1='".$name_ln[39]."';";
-echo "var msg2='".$name_ln[40]."';";
-echo "var msg3='".$name_ln[41]."';";
+if ($oper == "reset") {
+    echo "var msg1='".$name_ln[67]."';";
+} else {
+    echo "var msg1='".$name_ln[39]."';";
+}
+if ($oper == "reset") {
+    echo "var msg2='".$name_ln[68]."';";
+} else {
+    echo "var msg2='".$name_ln[40]."';";
+}
+if ($oper == "reset") {
+    echo "var msg3='';";
+} else {
+    echo "var msg3='".$name_ln[41]."';";
+}
 echo "var msg4='".$name_ln[42]."';";
 echo "var url='".$URL."';";
 echo "var oper='".$oper."';";
@@ -156,7 +168,8 @@ $(document).ready(function(){
                   $("#reset").click(function(){
                                    var block = document.getElementById('layer1');
                                    block.style.display = 'block';
-                                    alert ('reset!');
+                                    reset_p();
+                                    //alert ('reset!');
                                    });
                   $("#sent").click(function(){
                                    var block = document.getElementById('layer1');
@@ -253,6 +266,39 @@ function loginto() {
 	req.send(str_sent); 
     }
 }
+function reset_p() {
+    
+    var req = getXmlHttp();
+    var reqtext = '';
+    var nm1=$('#mailID').val();
+    
+    req.onreadystatechange = function() {
+        if (req.readyState == 4) {
+            //statusElem.innerHTML = req.statusText
+            if(req.status == 200) {
+                reqtext=req.responseText;
+                if(reqtext.indexOf('/?hash=')==0) {
+	                //alert(reqtext+'!!!!!!!!!!');
+                    if (email=="") {
+                        hash = reqtext;
+                        sent_new();
+                    } else {
+                        location.replace(url);
+                    }
+                } else {
+                    document.getElementById('layer1').style.display = 'none';
+	                alert(reqtext);
+                }
+            }
+        }
+    }
+    str_sent='&mail='+nm1;
+    //alert(str_sent);
+    if (nm1!="") {
+        req.open('GET', 'reset.php?act=m'+str_sent, true);
+        req.send(null);
+    }
+}
 
 function save_new() {
 
@@ -328,8 +374,13 @@ function sent_new() {
                 //alert(reqtext);
                 
 		document.getElementById('layer1').style.display = 'none';
-                alert(msg1+'! '+msg4+'.');
-                location.replace(url);
+                if (oper!='reset') {
+                    alert(msg1+'! '+msg4+'.');
+                } else {
+                    alert(msg4+'.');
+                }
+                //location.replace(url);
+                location.replace(url+'/registration'+hash);
             }
         }
     }
@@ -349,7 +400,9 @@ function sent_new() {
     str_sent=str_sent+'&name='+nm3;
     str_sent=str_sent+'&desc='+nm4;
     str_sent=str_sent+'&loc='+nm5;
-        //alert(str_sent);
+    
+    //alert(url+'/registration'+hash);
+
     if (nm1!="") {
         req.open('GET', 'send.php?act=m'+str_sent, true);
         req.send(null);
@@ -511,9 +564,26 @@ if ($email!="") { echo " disabled"; }
 $(":checkbox").change(function(){
 var val0;
     if(this.checked){
-	document.getElementById('shelter').style.display = 'block'; org=1;
+	//document.getElementById('shelter').style.display = 'block';
+    //document.getElementById('shelter').style.backgroundColor = '#ffffff';
+        org=1;
+        document.getElementById('shelter').style.opacity = '1.0';
+                      //opacity: 0.7; /* Полупрозрачный фон */
+        document.getElementById('shelter').style.filter = 'alpha(Opacity=100)';
+                      document.getElementById('descID').readOnly=false;
+                      document.getElementById('webID').readOnly=false;
+                      document.getElementById('locID').readOnly=false;
+                      document.getElementById('add_map').readOnly=false;
     }else{
-	document.getElementById('shelter').style.display = 'none'; org=0;
+	//document.getElementById('shelter').style.display = 'none';
+    //document.getElementById('shelter').style.backgroundColor = '#f2f2f2';
+        org=0;
+        document.getElementById('shelter').style.opacity = '0.2';
+        document.getElementById('shelter').style.filter = 'alpha(Opacity=20)';
+                      document.getElementById('descID').readOnly=true;
+                      document.getElementById('webID').readOnly=true;
+                      document.getElementById('locID').readOnly=true;
+                      document.getElementById('add_map').readOnly=true;
     }
 }); 
 
@@ -523,7 +593,7 @@ var val0;
 
     </table>
 
-    <table id="shelter" <? if ($oper == "login" || $org=="0") { ?>style="border: 2px solid #f2f2f2; width: 330px; display: none;"<? } else { ?>style="border: 2px solid #f2f2f2; width: 330px;"<? } ?>>    
+<table id="shelter" style="border: 2px solid #f2f2f2; width: 330px; <? if ($oper == "new" && $email=="") { ?>opacity: 0.2;<? } else { if ($oper == "login" || $org=="0") { ?>display: none;<? } else { ?>opacity: 1.0;<? } } ?>">
 
 	<tr>
     <td align="left">
@@ -533,7 +603,7 @@ var val0;
 	<tr>
     <td align="left">
     <div class="search">
-    <input style="width:300px;" type="text" id="descID" placeholder="" vertical-align="bottom" name="inputDescr" value="<? if ($email!="") { echo $descr; } ?>">
+<input <? if ($oper == "new" && $email=="") { ?>readonly<? } ?> style="width:300px;" type="text" id="descID" placeholder="" vertical-align="bottom" name="inputDescr" value="<? if ($email!="") { echo $descr; } ?>">
     </div>
     </td>
 	</tr>
@@ -546,7 +616,7 @@ var val0;
 	<tr>
     <td align="left">
     <div class="search">
-    <input style="width:300px;" type="text" id="webID" placeholder="" vertical-align="bottom" name="inputWeb" value="<? if ($email!="") { echo $web; } ?>">
+    <input <? if ($oper == "new" && $email=="") { ?>readonly<? } ?> style="width:300px;" type="text" id="webID" placeholder="" vertical-align="bottom" name="inputWeb" value="<? if ($email!="") { echo $web; } ?>">
     </div>
     </td>
 	</tr>
@@ -560,7 +630,7 @@ var val0;
 	<tr>
 		<td align="right">
 <div class="search">
-<input style="width:300px;" type="text" id="locID" placeholder="<? echo $name_ln[22]; ?>" vertical-align="bottom" name="inputLoc" value="<? if ($email!="") { echo $location; } ?>">
+<input <? if ($oper == "new" && $email=="") { ?>readonly<? } ?> style="width:300px;" type="text" id="locID" placeholder="<? echo $name_ln[22]; ?>" vertical-align="bottom" name="inputLoc" value="<? if ($email!="") { echo $location; } ?>">
 </div>
 <div id="add_map" style="width: 320px; height: 270px; display: block;">
 </div>

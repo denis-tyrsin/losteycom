@@ -1,4 +1,4 @@
-<?
+﻿<?
 include_once('db_vars.php');
 require_once('registration/checkuser.php');
 include('functions_pr.php');
@@ -19,6 +19,19 @@ if ($mob_get!="") {
 	}    
 }
 $id_get = $_GET['n'];
+$act_get0 = $_GET['a'];
+if ($act_get0!="") {
+
+    $arrdonate = explode("|", $act_get0);
+ if (count($arrdonate)==4) {
+    $act_get = $arrdonate[0];
+    $o_get = $arrdonate[1];
+    $u_get = $arrdonate[2];
+    $id_get = $arrdonate[3];
+    $s_get = 10;
+ }
+}
+
 if ($id_get!="") {
     $query = "SELECT * from Objects where id_obj='".$id_get."'";
     $result = mysql_query($query) or die('Query failed: ' . mysql_error());
@@ -27,6 +40,13 @@ if ($id_get!="") {
         $text_get=$row->text;
         $sum_get=$row->sum;
         $img_get="images/obj/".$row->id_p.".jpg";
+        if ($act_get=="donate" && $o_get!="" && $u_get!="" && $id_get!="" && $s_get>0) {
+            $query = "INSERT INTO Orders (obj_id, user_id, state, sum, ordern) VALUES ('".$id_get."', '".$u_get."', '0', '".$s_get."', '".$o_get."')";
+            $result = mysql_query($query) or die('Query update orders failed: ' . mysql_error());
+            $query = "UPDATE Objects SET sumcur=sumcur+".$s_get." WHERE id_obj='".$id_get."' and sumcur<sum";
+            $result = mysql_query($query) or die('Query update object failed: ' . mysql_error());
+            //$sum_get=$sum_get+$s_get;
+        }
     }
 }
 $date_get = $_GET['date'];
@@ -241,7 +261,7 @@ if ($id_get!="") {
 <script type="text/javascript" src="js/jquery.functions_pr.js"></script>
 <script type="text/javascript" src="js/jquery.functions_objsw12.js"></script>
 <script type="text/javascript" src="js/jquery.functions_mrks1.js"></script>
-<script type="text/javascript" src="js/jquery.functions_inits24.js"></script>
+<script type="text/javascript" src="js/jquery.functions_inits29.js"></script>
 <script type="text/javascript" src="js/jquery.functions_clicks1.js"></script>
 <script type="text/javascript" src="js/ajaxupload.3.5.js" ></script>
 <script src="http://api-maps.yandex.ru/2.0/?load=package.standard&lang=<? echo $lang_ln; ?>-RU" type="text/javascript"></script>
@@ -453,7 +473,7 @@ if ($mob_get=="1") {
 
 
 
-<div class="layer_auth" style="<? if ($mob_get=="12") { echo "display: none;"; } ?>">
+<div class="layer_auth" id="layer_auth" style="<? if ($mob_get=="12") { echo "display: none;"; } ?>">
 
 <div class="sign-in">
 
@@ -697,8 +717,17 @@ $(document).ready(function(){
                                      });
                   $("#btncomm").click(function(){
 						save_comment();
+                                      $('#comm_add').text('');
+                                      //$('#text_add').text('');
                                      });
                   $("#btnmap").click(function(){
+                        <?
+                        if ($mob_get=="1") {
+                        ?>
+                        document.getElementById('layer_auth').style.display = 'none';
+                        <?
+                        }
+                        ?>
 						document.getElementById('slogan0id').style.display = 'none';
 						heighthd = $('#header').height();
 						heightsl = $('#slogan0id').height();
@@ -707,6 +736,7 @@ $(document).ready(function(){
 						btnmap_click();
                                      });
                   $("#btnlst").click(function(){
+                        document.getElementById('layer_auth').style.display = 'block';
 						document.getElementById('slogan0id').style.display = 'block';
 						btnlst_click();
                                      });                  
@@ -1027,8 +1057,9 @@ if ($first_name!="") {
     <? echo $first_name; ?>
     </U></a></div>
     <div>
-    <textarea style="width: <? if ($mob_get!="1") { echo "400px"; } else { echo "230px"; } ?>;" name="commadd" id="comm_add" class="content" placeholder="" cols="10" rows="5"></textarea>
-	<div class="clear">
+    <textarea style="width: <? if ($mob_get!="1") { echo "400px"; } else { echo "230px"; } ?>;" name="commadd" id="comm_add" cols="10" rows="5">
+    </textarea>
+    <div class="clear">
 	</div>
 	<div class="tabs3" id="btncommid">
 	<a data-tab-selector="#tab_comm" id="btncomm"><? echo $name_ln[59]; ?></a>
